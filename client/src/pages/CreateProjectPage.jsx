@@ -4,10 +4,12 @@ import { useProjects } from '../hooks/useProjects.js';
 import Navbar from '../components/Navbar.jsx';
 import Input from '../components/ui/input.jsx';
 import Button from '../components/ui/button.jsx';
+import Spinner from '../components/ui/Spinner.jsx';
 
 export default function CreateProjectPage() {
   const [form, setForm] = useState({ name: '', description: '' });
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { createProject } = useProjects();
 
@@ -18,12 +20,16 @@ export default function CreateProjectPage() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
+    setIsSubmitting(true);
 
     try {
-      await createProject.mutateAsync(form);
-      navigate('/projects');
+      const response = await createProject.mutateAsync(form);
+      const newId = response?.data?.project?.id;
+      navigate(newId ? `/projects/${newId}` : '/projects');
     } catch (err) {
       setError(err.response?.data?.message || 'Unable to create project');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -36,7 +42,7 @@ export default function CreateProjectPage() {
           <form onSubmit={handleSubmit} className="mt-6 space-y-5">
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">Project name</label>
-              <Input name="name" value={form.name} onChange={handleChange} placeholder="Project name" />
+              <Input name="name" value={form.name} required onChange={handleChange} placeholder="Project name" />
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">Description</label>
@@ -51,8 +57,11 @@ export default function CreateProjectPage() {
             </div>
             {error && <p className="text-sm text-rose-600">{error}</p>}
             <div className="flex items-center gap-3">
-              <Button type="submit">Create project</Button>
-              <Button type="button" variant="secondary" onClick={() => navigate('/projects')}>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? <Spinner className="mr-2 h-4 w-4" /> : null}
+                Create project
+              </Button>
+              <Button type="button" variant="secondary" disabled={isSubmitting} onClick={() => navigate('/projects')}>
                 Cancel
               </Button>
             </div>

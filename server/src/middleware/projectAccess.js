@@ -5,12 +5,8 @@ export const isProjectMember = async (req, res, next) => {
     const projectId = req.params.id;
     const userId = req.user.userId;
 
-    // Check if user is a global admin
-    if (req.user.role === 'ADMIN') {
-      return next();
-    }
+    if (req.user.role === 'ADMIN') return next();
 
-    // Check if user is a project member
     const membership = await prisma.projectMember.findUnique({
       where: {
         userId_projectId: {
@@ -21,14 +17,13 @@ export const isProjectMember = async (req, res, next) => {
     });
 
     if (!membership) {
-      return res.status(403).json({ message: 'Access denied. You are not a member of this project.' });
+      return res.status(403).json({ message: 'Not a project member' });
     }
 
     req.membership = membership;
     next();
-  } catch (error) {
-    console.error('isProjectMember middleware error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+  } catch (err) {
+    next(err);
   }
 };
 

@@ -4,40 +4,50 @@ import { projectService } from '../api/api.js';
 export const useProjects = () => {
   const queryClient = useQueryClient();
 
-  const projectsQuery = useQuery(['projects'], () => projectService.getAll().then((res) => res.data), {
+  const projectsQuery = useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const res = await projectService.getAll();
+      return res.data.projects;
+    },
     staleTime: 1000 * 60,
     retry: 1
   });
 
-  const createProject = useMutation((data) => projectService.create(data), {
-    onSuccess: () => queryClient.invalidateQueries(['projects'])
+  const createProject = useMutation({
+    mutationFn: (data) => projectService.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] })
   });
 
-  const updateProject = useMutation(({ id, data }) => projectService.update(id, data), {
+  const updateProject = useMutation({
+    mutationFn: ({ id, data }) => projectService.update(id, data),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       if (variables?.id) {
-        queryClient.invalidateQueries(['projects', variables.id]);
+        queryClient.invalidateQueries({ queryKey: ['projects', variables.id] });
       }
     }
   });
 
-  const deleteProject = useMutation((id) => projectService.remove(id), {
-    onSuccess: () => queryClient.invalidateQueries(['projects'])
+  const deleteProject = useMutation({
+    mutationFn: (id) => projectService.remove(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] })
   });
 
-  const addMember = useMutation(({ projectId, data }) => projectService.addMember(projectId, data), {
+  const addMember = useMutation({
+    mutationFn: ({ projectId, data }) => projectService.addMember(projectId, data),
     onSuccess: (_data, variables) => {
       if (variables?.projectId) {
-        queryClient.invalidateQueries(['projects', variables.projectId]);
+        queryClient.invalidateQueries({ queryKey: ['projects', variables.projectId] });
       }
     }
   });
 
-  const removeMember = useMutation(({ projectId, userId }) => projectService.removeMember(projectId, userId), {
+  const removeMember = useMutation({
+    mutationFn: ({ projectId, userId }) => projectService.removeMember(projectId, userId),
     onSuccess: (_data, variables) => {
       if (variables?.projectId) {
-        queryClient.invalidateQueries(['projects', variables.projectId]);
+        queryClient.invalidateQueries({ queryKey: ['projects', variables.projectId] });
       }
     }
   });
@@ -53,7 +63,9 @@ export const useProjects = () => {
 };
 
 export const useProject = (id) =>
-  useQuery(['projects', id], () => projectService.getById(id).then((res) => res.data.project), {
+  useQuery({
+    queryKey: ['projects', id],
+    queryFn: () => projectService.getById(id).then((res) => res.data.project),
     enabled: !!id,
     staleTime: 1000 * 60,
     retry: 1

@@ -13,16 +13,12 @@ import { createTaskSchema, updateTaskSchema, updateStatusSchema, validate } from
 
 const router = express.Router();
 
-// All routes require authentication and project membership
-router.use(verifyToken);
-router.use('/:id', isProjectMember);
-
 // Task routes
-router.get('/:id/tasks', getTasks);
-router.post('/:id/tasks', validate(createTaskSchema), createTask);
-router.get('/:id/tasks/:taskId', getTaskById);
-router.put('/:id/tasks/:taskId', validate(updateTaskSchema), updateTask);
-router.delete('/:id/tasks/:taskId', deleteTask);
-router.patch('/:id/tasks/:taskId/status', validate(updateStatusSchema), updateTaskStatus);
+router.get('/:id/tasks', verifyToken, isProjectMember, getTasks);
+router.post('/:id/tasks', verifyToken, isProjectMember, validate(createTaskSchema), createTask);
+router.get('/:id/tasks/:taskId', verifyToken, isProjectMember, getTaskById);
+router.put('/:id/tasks/:taskId', verifyToken, isProjectMember, validate(updateTaskSchema), updateTask);
+router.delete('/:id/tasks/:taskId', verifyToken, isProjectMember, deleteTask);
+router.patch('/:id/tasks/:taskId/status', verifyToken, isProjectMember, validate(updateStatusSchema), updateTaskStatus);
 
 export default router;

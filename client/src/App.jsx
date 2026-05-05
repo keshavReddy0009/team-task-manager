@@ -1,8 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import Home from './pages/Home.jsx';
-import Login from './pages/Login.jsx';
-import Register from './pages/Register.jsx';
-import DashboardPage from './pages/Dashboard.jsx';
+import LoginPage from './pages/LoginPage.jsx';
+import SignupPage from './pages/SignupPage.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
 import ProjectsPage from './pages/ProjectsPage.jsx';
 import CreateProjectPage from './pages/CreateProjectPage.jsx';
 import ProjectDetailPage from './pages/ProjectDetailPage.jsx';
@@ -10,18 +9,18 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { useAuth } from './hooks/useAuth.jsx';
 
 function App() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route
         path="/login"
-        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />}
+        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />}
       />
       <Route
         path="/signup"
-        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />}
+        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <SignupPage />}
       />
       <Route
         path="/dashboard"

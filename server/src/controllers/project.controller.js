@@ -1,6 +1,6 @@
 import prisma from '../lib/prisma.js';
 
-export const getAllProjects = async (req, res) => {
+export const getAllProjects = async (req, res, next) => {
   try {
     const userId = req.user.userId;
 
@@ -11,7 +11,7 @@ export const getAllProjects = async (req, res) => {
           {
             members: {
               some: {
-                userId
+                userId: userId
               }
             }
           }
@@ -19,27 +19,28 @@ export const getAllProjects = async (req, res) => {
       },
       include: {
         owner: {
-          select: {
-            name: true,
-            email: true
+          select: { id: true, name: true, email: true }
+        },
+        members: {
+          include: {
+            user: {
+              select: { id: true, name: true, email: true }
+            }
           }
         },
         _count: {
           select: {
-            members: true,
-            tasks: true
+            tasks: true,
+            members: true
           }
         }
       },
-      orderBy: {
-        updatedAt: 'desc'
-      }
+      orderBy: { createdAt: 'desc' }
     });
 
-    res.json({ projects });
-  } catch (error) {
-    console.error('getAllProjects error:', error);
-    res.status(500).json({ message: 'Failed to fetch projects' });
+    return res.json({ projects });
+  } catch (err) {
+    next(err);
   }
 };
 

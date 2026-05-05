@@ -4,7 +4,7 @@ const createTaskSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional().default('MEDIUM'),
-  dueDate: z.string().datetime().optional().transform((val) => val ? new Date(val) : undefined),
+  dueDate: z.string().optional(),
   assigneeId: z.string().optional()
 });
 
@@ -12,7 +12,7 @@ const updateTaskSchema = z.object({
   title: z.string().min(1, 'Title is required').optional(),
   description: z.string().optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
-  dueDate: z.string().datetime().optional().transform((val) => val ? new Date(val) : undefined),
+  dueDate: z.string().optional(),
   assigneeId: z.string().optional()
 });
 

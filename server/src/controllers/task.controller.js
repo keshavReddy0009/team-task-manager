@@ -1,51 +1,53 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
-export const getTasks = async (req, res) => {
+export const getTasks = async (req, res, next) => {
   try {
-    const projectId = req.params.id;
+    const { id: projectId } = req.params;
+    const userId = req.user.userId;
     const { status, priority, assigneeId } = req.query;
 
-    const where = { projectId };
-    if (status) where.status = status;
-    if (priority) where.priority = priority;
-    if (assigneeId) where.assigneeId = assigneeId;
+    // STRICT_MODE=true: members only see tasks they created or are assigned to.
+    const STRICT_MODE = true;
+
+    const whereCondition = { projectId };
+
+    if (status) whereCondition.status = status;
+    if (priority) whereCondition.priority = priority;
+    if (assigneeId) whereCondition.assigneeId = assigneeId;
+
+    if (req.user.role !== 'ADMIN' && STRICT_MODE) {
+      whereCondition.OR = [{ creatorId: userId }, { assigneeId: userId }];
+    }
 
     const tasks = await prisma.task.findMany({
-      where,
+      where: whereCondition,
       include: {
         assignee: {
-          select: {
-            name: true,
-            email: true
-          }
+          select: { id: true, name: true, email: true }
         },
         creator: {
-          select: {
-            name: true,
-            email: true
-          }
+          select: { id: true, name: true, email: true }
         }
       },
-      orderBy: {
-        createdAt: 'desc'
-      }
+      orderBy: { createdAt: 'desc' }
     });
 
-    res.json({ tasks });
-  } catch (error) {
-    console.error('getTasks error:', error);
-    res.status(500).json({ message: 'Failed to fetch tasks' });
+    return res.json({ tasks });
+  } catch (err) {
+    next(err);
   }
 };
 
-export const createTask = async (req, res) => {
+export const createTask = async (req, res, next) => {
   try {
-    const projectId = req.params.id;
+    const { id: projectId } = req.params;
     const { title, description, priority, dueDate, assigneeId } = req.body;
-    const creatorId = req.user.userId;
 
-    // Validate assignee is a member if provided
+    if (!title) {
+      return res.status(400).json({ message: 'Title is required' });
+    }
+
     if (assigneeId) {
       const member = await prisma.projectMember.findUnique({
         where: {
@@ -55,8 +57,11 @@ export const createTask = async (req, res) => {
           }
         }
       });
+
       if (!member) {
-        return res.status(400).json({ message: 'Assignee must be a project member' });
+        return res.status(400).json({
+          message: 'Assignee must be a project member'
+        });
       }
     }
 
@@ -64,69 +69,49 @@ export const createTask = async (req, res) => {
       data: {
         title,
         description,
-        priority,
-        dueDate,
-        assigneeId,
-        creatorId,
-        projectId
-      },
-      include: {
-        assignee: {
-          select: {
-            name: true,
-            email: true
-          }
-        },
-        creator: {
-          select: {
-            name: true,
-            email: true
-          }
-        }
+        priority: priority || 'MEDIUM',
+        dueDate: dueDate ? new Date(dueDate) : null,
+        projectId,
+        creatorId: req.user.userId,
+        assigneeId: assigneeId || null
       }
     });
 
-    res.status(201).json({ task });
-  } catch (error) {
-    console.error('createTask error:', error);
-    res.status(500).json({ message: 'Failed to create task' });
+    return res.status(201).json(task);
+  } catch (err) {
+    console.error('Create task error:', err);
+    next(err);
   }
 };
 
-export const getTaskById = async (req, res) => {
+export const getTaskById = async (req, res, next) => {
   try {
-    const projectId = req.params.id;
-    const taskId = req.params.taskId;
+    const { id: projectId, taskId } = req.params;
+    const userId = req.user.userId;
 
     const task = await prisma.task.findFirst({
       where: {
         id: taskId,
-        projectId
+        projectId,
+        ...(req.user.role === 'ADMIN'
+          ? {}
+          : {
+              OR: [{ creatorId: userId }, { assigneeId: userId }]
+            })
       },
       include: {
-        assignee: {
-          select: {
-            name: true,
-            email: true
-          }
-        },
-        creator: {
-          select: {
-            name: true,
-            email: true
-          }
-        }
+        assignee: true,
+        creator: true
       }
     });
 
     if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+      return res.status(404).json({ message: 'Task not found or access denied' });
     }
 
-    res.json({ task });
-  } catch (error) {
-    console.error('getTaskById error:', error);
-    res.status(500).json({ message: 'Failed to fetch task' });
+    return res.json(task);
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -158,13 +143,16 @@ export const updateTask = async (req, res) => {
       return res.status(404).json({ message: 'Task not found' });
     }
 
-    // Check permissions: creator, assignee, or project admin
-    const isCreator = task.creatorId === userId;
-    const isAssignee = task.assigneeId === userId;
-    const isProjectAdmin = task.project.members[0]?.role === 'ADMIN' || userRole === 'ADMIN';
+    const isAllowed =
+      task.creatorId === userId ||
+      task.assigneeId === userId ||
+      req.membership?.role === 'ADMIN' ||
+      req.user.role === 'ADMIN' ||
+      task.project.members[0]?.role === 'ADMIN' ||
+      userRole === 'ADMIN';
 
-    if (!isCreator && !isAssignee && !isProjectAdmin) {
-      return res.status(403).json({ message: 'Not authorized to update this task' });
+    if (!isAllowed) {
+      return res.status(403).json({ message: 'Not allowed' });
     }
 
     // Validate assignee is a member if provided
@@ -236,12 +224,16 @@ export const deleteTask = async (req, res) => {
       return res.status(404).json({ message: 'Task not found' });
     }
 
-    // Check permissions: creator or project admin
-    const isCreator = task.creatorId === userId;
-    const isProjectAdmin = task.project.members[0]?.role === 'ADMIN' || userRole === 'ADMIN';
+    const isAllowed =
+      task.creatorId === userId ||
+      task.assigneeId === userId ||
+      req.membership?.role === 'ADMIN' ||
+      req.user.role === 'ADMIN' ||
+      task.project.members[0]?.role === 'ADMIN' ||
+      userRole === 'ADMIN';
 
-    if (!isCreator && !isProjectAdmin) {
-      return res.status(403).json({ message: 'Not authorized to delete this task' });
+    if (!isAllowed) {
+      return res.status(403).json({ message: 'Not allowed' });
     }
 
     await prisma.task.delete({
