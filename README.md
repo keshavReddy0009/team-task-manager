@@ -1,6 +1,6 @@
 ---
 
-````md
+
 # 🚀 Team Task Manager
 
 > A production-ready team collaboration tool built with modern full-stack technologies.
