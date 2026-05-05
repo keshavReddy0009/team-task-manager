@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-async function main() {
+export default async function seed() {
   const adminPassword = await bcrypt.hash('Admin@123', 10);
   const memberPassword = await bcrypt.hash('Member@123', 10);
 
@@ -46,7 +46,7 @@ async function main() {
     create: {
       id: 'project-a',
       name: 'Website Redesign',
-      description: 'Modernize the company website with a refreshed design and new features.',
+      description: 'Modernize the company website.',
       ownerId: admin.id,
       status: 'ACTIVE',
       members: {
@@ -64,7 +64,7 @@ async function main() {
     create: {
       id: 'project-b',
       name: 'Mobile App Launch',
-      description: 'Build and release the mobile version of our task management app.',
+      description: 'Build mobile app.',
       ownerId: member1.id,
       status: 'ACTIVE',
       members: {
@@ -80,49 +80,8 @@ async function main() {
     data: [
       {
         title: 'Design homepage',
-        description: 'Create layout and visual design for the landing page.',
         status: 'IN_PROGRESS',
         priority: 'HIGH',
-        dueDate: new Date(new Date().setDate(new Date().getDate() + 7)),
-        projectId: projectA.id,
-        creatorId: admin.id,
-        assigneeId: member1.id
-      },
-      {
-        title: 'Write app onboarding copy',
-        description: 'Prepare onboarding screens and help text for the mobile app.',
-        status: 'TODO',
-        priority: 'MEDIUM',
-        dueDate: new Date(new Date().setDate(new Date().getDate() + 14)),
-        projectId: projectB.id,
-        creatorId: member1.id,
-        assigneeId: member2.id
-      },
-      {
-        title: 'Review user feedback',
-        description: 'Evaluate initial user tests and collect improvement ideas.',
-        status: 'DONE',
-        priority: 'LOW',
-        dueDate: new Date(new Date().setDate(new Date().getDate() - 2)),
-        projectId: projectA.id,
-        creatorId: admin.id,
-        assigneeId: member1.id
-      },
-      {
-        title: 'Implement push notifications',
-        description: 'Add push notification support to the mobile app.',
-        status: 'TODO',
-        priority: 'HIGH',
-        projectId: projectB.id,
-        creatorId: member1.id,
-        assigneeId: member2.id
-      },
-      {
-        title: 'Fix task sync issue',
-        description: 'Resolve bug causing tasks to disappear when switching projects.',
-        status: 'OVERDUE',
-        priority: 'HIGH',
-        dueDate: new Date(new Date().setDate(new Date().getDate() - 1)),
         projectId: projectA.id,
         creatorId: admin.id,
         assigneeId: member1.id
@@ -131,14 +90,5 @@ async function main() {
     skipDuplicates: true
   });
 
-  console.log('Seed data created successfully.');
+  console.log('Seed data created successfully');
 }
-
-main()
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });

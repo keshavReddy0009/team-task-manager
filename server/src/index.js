@@ -9,6 +9,7 @@ import taskRoutes from './routes/task.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import path, { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import seed from '../prisma/seed.js';
 
 dotenv.config();
 
@@ -18,44 +19,62 @@ const __dirname = dirname(__filename);
 const prisma = new PrismaClient();
 
 const app = express();
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
+
+// ✅ CORS
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true
+}));
+
 app.use(express.json());
+
+// ✅ API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/projects', taskRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.get('/api/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
-// Production static file serving
+// ✅ Health check
+app.get('/api/health', (_req, res) =>
+  res.json({ status: 'ok', timestamp: new Date().toISOString() })
+);
+
+// ✅ SEED ROUTE (ADD HERE)
+app.get('/api/seed', async (req, res) => {
+  try {
+    await seed();
+    res.json({ message: 'Database seeded successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Seeding failed' });
+  }
+});
+
+// 🔥 Production static file serving (KEEP AFTER API ROUTES)
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(join(__dirname, '../../client/dist')));
+
   app.get('*', (req, res) => {
     res.sendFile(join(__dirname, '../../client/dist/index.html'));
   });
 }
 
-// Schedule cron job to update overdue tasks every hour
+// ✅ Cron job
 cron.schedule('0 * * * *', async () => {
   try {
-    const result = await prisma.task.updateMany({
+    await prisma.task.updateMany({
       where: {
-        dueDate: {
-          lt: new Date()
-        },
-        status: {
-          notIn: ['DONE', 'OVERDUE']
-        }
+        dueDate: { lt: new Date() },
+        status: { notIn: ['DONE', 'OVERDUE'] }
       },
-      data: {
-        status: 'OVERDUE'
-      }
+      data: { status: 'OVERDUE' }
     });
   } catch (error) {
-
+    console.error('Cron error:', error);
   }
 });
 
-// Global error handler
+// ✅ Global error handler
 app.use((err, req, res, next) => {
   res.status(err.status || 500).json({
     success: false,
@@ -63,7 +82,8 @@ app.use((err, req, res, next) => {
   });
 });
 
+// ✅ Start server
 const port = process.env.PORT || 4000;
 app.listen(port, () => {
-  /* Server started */
+  console.log(`Server running on port ${port}`);
 });
