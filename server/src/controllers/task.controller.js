@@ -77,9 +77,9 @@ export const createTask = async (req, res, next) => {
       }
     });
 
-    return res.status(201).json(task);
+    return res.status(201).json({ task });
   } catch (err) {
-    console.error('Create task error:', err);
+
     next(err);
   }
 };
@@ -109,7 +109,7 @@ export const getTaskById = async (req, res, next) => {
       return res.status(404).json({ message: 'Task not found or access denied' });
     }
 
-    return res.json(task);
+    return res.json({ task });
   } catch (err) {
     next(err);
   }
@@ -120,7 +120,6 @@ export const updateTask = async (req, res) => {
     const projectId = req.params.id;
     const taskId = req.params.taskId;
     const userId = req.user.userId;
-    const userRole = req.user.role;
 
     // Get task to check permissions
     const task = await prisma.task.findFirst({
@@ -143,15 +142,7 @@ export const updateTask = async (req, res) => {
       return res.status(404).json({ message: 'Task not found' });
     }
 
-    const isAllowed =
-      task.creatorId === userId ||
-      task.assigneeId === userId ||
-      req.membership?.role === 'ADMIN' ||
-      req.user.role === 'ADMIN' ||
-      task.project.members[0]?.role === 'ADMIN' ||
-      userRole === 'ADMIN';
-
-    if (!isAllowed) {
+    if (req.membership?.role !== 'ADMIN' && task.creatorId !== userId && task.assigneeId !== userId) {
       return res.status(403).json({ message: 'Not allowed' });
     }
 
@@ -191,7 +182,7 @@ export const updateTask = async (req, res) => {
 
     res.json({ task: updatedTask });
   } catch (error) {
-    console.error('updateTask error:', error);
+
     res.status(500).json({ message: 'Failed to update task' });
   }
 };
@@ -201,7 +192,6 @@ export const deleteTask = async (req, res) => {
     const projectId = req.params.id;
     const taskId = req.params.taskId;
     const userId = req.user.userId;
-    const userRole = req.user.role;
 
     // Get task to check permissions
     const task = await prisma.task.findFirst({
@@ -224,15 +214,7 @@ export const deleteTask = async (req, res) => {
       return res.status(404).json({ message: 'Task not found' });
     }
 
-    const isAllowed =
-      task.creatorId === userId ||
-      task.assigneeId === userId ||
-      req.membership?.role === 'ADMIN' ||
-      req.user.role === 'ADMIN' ||
-      task.project.members[0]?.role === 'ADMIN' ||
-      userRole === 'ADMIN';
-
-    if (!isAllowed) {
+    if (req.membership?.role !== 'ADMIN' && task.creatorId !== userId && task.assigneeId !== userId) {
       return res.status(403).json({ message: 'Not allowed' });
     }
 
@@ -242,7 +224,7 @@ export const deleteTask = async (req, res) => {
 
     res.status(204).send();
   } catch (error) {
-    console.error('deleteTask error:', error);
+
     res.status(500).json({ message: 'Failed to delete task' });
   }
 };
@@ -276,11 +258,7 @@ export const updateTaskStatus = async (req, res) => {
       return res.status(404).json({ message: 'Task not found' });
     }
 
-    // Check permissions: assignee or project admin
-    const isAssignee = task.assigneeId === userId;
-    const isProjectAdmin = task.project.members[0]?.role === 'ADMIN' || userRole === 'ADMIN';
-
-    if (!isAssignee && !isProjectAdmin) {
+    if (req.membership?.role !== 'ADMIN' && task.assigneeId !== userId) {
       return res.status(403).json({ message: 'Not authorized to update task status' });
     }
 
@@ -305,7 +283,7 @@ export const updateTaskStatus = async (req, res) => {
 
     res.json({ task: updatedTask });
   } catch (error) {
-    console.error('updateTaskStatus error:', error);
+
     res.status(500).json({ message: 'Failed to update task status' });
   }
 };

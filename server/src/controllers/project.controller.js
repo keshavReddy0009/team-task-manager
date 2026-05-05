@@ -71,7 +71,7 @@ export const createProject = async (req, res) => {
 
     res.status(201).json({ project: result });
   } catch (error) {
-    console.error('createProject error:', error);
+
     res.status(500).json({ message: 'Failed to create project' });
   }
 };
@@ -121,7 +121,7 @@ export const getProjectById = async (req, res) => {
 
     res.json({ project });
   } catch (error) {
-    console.error('getProjectById error:', error);
+
     res.status(500).json({ message: 'Failed to fetch project' });
   }
 };
@@ -142,7 +142,7 @@ export const updateProject = async (req, res) => {
 
     res.json({ project });
   } catch (error) {
-    console.error('updateProject error:', error);
+
     if (error.code === 'P2025') {
       return res.status(404).json({ message: 'Project not found' });
     }
@@ -173,7 +173,7 @@ export const deleteProject = async (req, res) => {
 
     res.status(204).send();
   } catch (error) {
-    console.error('deleteProject error:', error);
+
     if (error.code === 'P2025') {
       return res.status(404).json({ message: 'Project not found' });
     }
@@ -228,7 +228,7 @@ export const addMember = async (req, res) => {
 
     res.status(201).json({ membership });
   } catch (error) {
-    console.error('addMember error:', error);
+
     res.status(500).json({ message: 'Failed to add member' });
   }
 };
@@ -265,7 +265,7 @@ export const removeMember = async (req, res) => {
 
     res.status(204).send();
   } catch (error) {
-    console.error('removeMember error:', error);
+
     if (error.code === 'P2025') {
       return res.status(404).json({ message: 'Member not found' });
     }

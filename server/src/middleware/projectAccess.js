@@ -54,7 +54,7 @@ export const isProjectAdmin = async (req, res, next) => {
     req.membership = membership;
     next();
   } catch (error) {
-    console.error('isProjectAdmin middleware error:', error);
+
     res.status(500).json({ message: 'Internal server error' });
   }
 };

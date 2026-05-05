@@ -11,7 +11,6 @@ const isOverdueDate = (date, status) => {
 
 export default function DashboardPage() {
   const { data, isLoading, isError } = useDashboard();
-  console.log('Dashboard Data:', data);
 
   const stats = {
     totalProjects: data?.totalProjects || 0,

@@ -14,7 +14,6 @@ export default function ProjectsPage() {
   const [tab, setTab] = useState('ALL');
 
   const data = projectsQuery.data;
-  console.log('Projects API:', data);
   const projects = data || [];
   const filteredProjects = projects.filter((project) => (tab === 'ALL' ? true : project.status === tab));
 
