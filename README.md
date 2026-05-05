@@ -1,89 +1,246 @@
-# Team Task Manager
+---
 
-Full-stack SaaS app for team project and task management with role-based permissions, real-time overdue detection, and dashboard analytics.
+````md
+# 🚀 Team Task Manager
 
-## Live Demo
-- Frontend: [Vercel URL]
-- Backend API: [Railway URL]
-- Test credentials:
-  Admin: admin@test.com / Admin@123
-  Member: member1@test.com / Member@123
+> A production-ready team collaboration tool built with modern full-stack technologies.
 
-## Features
-- JWT Authentication with role-based access (ADMIN/MEMBER)
-- Create/manage projects with member invitation
-- CRUD tasks with assignee/project linking
-- Dashboard with stats, overdue alerts, recent tasks
-- RBAC: Admins manage members/tasks, members create/view assigned
-- Auto-overdue cron job
-- Responsive Tailwind UI with modals/charts
+A **full-stack SaaS application** for managing team projects and tasks with role-based permissions, analytics dashboard, and real-time overdue tracking.
 
-## Tech Stack
+---
+
+## 🌐 Live Demo
+
+- **Frontend (Vercel):**  
+  https://team-task-manager-sigma-six.vercel.app  
+
+- **Backend API (Railway):**  
+  https://team-task-manager-production-2301.up.railway.app/api  
+
+- **Health Check:**  
+  https://team-task-manager-production-2301.up.railway.app/api/health  
+
+---
+
+## 🔐 Test Credentials
+
+| Role | Email | Password |
+|------|------|---------|
+| Admin | admin@test.com | Admin@123 |
+| Member | member1@test.com | Member@123 |
+
+---
+
+## ✨ Features
+
+### 🔑 Authentication & Security
+- JWT-based authentication
+- Secure password hashing using bcrypt
+- Role-based access control (ADMIN / MEMBER)
+
+### 📁 Project Management
+- Create and manage projects
+- Add/remove team members
+- Assign project roles (Admin / Member)
+
+### ✅ Task Management
+- Create, update, delete tasks
+- Assign tasks to members
+- Priority levels (LOW / MEDIUM / HIGH)
+- Status tracking (TODO, IN_PROGRESS, DONE, OVERDUE)
+
+### 📊 Dashboard
+- Project & task statistics
+- Tasks grouped by status
+- Overdue task tracking
+- Recent activity overview
+
+### ⏱ Automation
+- Cron job automatically marks overdue tasks
+
+### 🎨 UI/UX
+- Responsive design (Tailwind CSS)
+- Modal-based interactions
+- Clean dashboard layout
+
+---
+
+## 🧱 Tech Stack
+
 | Layer | Technology | Purpose |
-|-------|------------|---------|
+|------|------------|--------|
 | Frontend | React + Vite + React Query + Tailwind | UI, state, API caching |
-| Backend | Node.js + Express | API server |
-| Database | MySQL + Prisma ORM | Persistent data |
-| Auth | JWT + bcrypt | Secure sessions |
-| Validation | Zod | Input sanitization |
-| Deployment | Railway + Vercel | Prod hosting |
+| Backend | Node.js + Express | REST API |
+| Database | MySQL + Prisma ORM | Data persistence |
+| Auth | JWT + bcrypt | Authentication |
+| Validation | Zod | Request validation |
+| Deployment | Railway + Vercel | Hosting |
 
-## Local Development
-1. Clone repo
-2. `npm install` (root)
-3. Setup server: `cd team-task-manager/server`, copy `.env.example` to `.env`, fill DATABASE_URL/JWT_SECRET
-4. Setup client: `cd team-task-manager/client`, copy `.env.example` to `.env`
-5. Run migrations: `cd team-task-manager/server && npx prisma migrate dev`
-6. Seed database: `npm run seed`
-7. Start both: `npm run dev`
+---
 
-## API Reference
-| Method | Endpoint | Auth | Role | Description |
-|--------|----------|------|------|-------------|
-| POST | /api/auth/signup | No | - | Create user |
-| POST | /api/auth/login | No | - | Login |
-| GET | /api/auth/me | Yes | - | User profile |
-| GET | /api/projects | Yes | Member | List user projects |
-| POST | /api/projects | Yes | - | Create project |
-| GET | /api/projects/:id | Yes | Member | Project details |
-| PUT | /api/projects/:id | Yes | Admin | Update project |
-| DELETE | /api/projects/:id | Yes | Admin | Delete project |
-| POST | /api/projects/:id/members | Yes | Admin | Add member |
-| DELETE | /api/projects/:id/members/:userId | Yes | Admin | Remove member |
-| GET | /api/projects/:id/tasks | Yes | Member | List tasks |
-| POST | /api/projects/:id/tasks | Yes | Member | Create task |
-| GET | /api/projects/:id/tasks/:taskId | Yes | Member | Task details |
-| PUT | /api/projects/:id/tasks/:taskId | Yes | Creator/Admin | Update task |
-| DELETE | /api/projects/:id/tasks/:taskId | Yes | Creator/Admin | Delete task |
-| PATCH | /api/projects/:id/tasks/:taskId/status | Yes | Assignee/Admin | Update status |
-| GET | /api/dashboard | Yes | - | Dashboard stats |
+## 🧑‍💻 Local Development
 
-## Deployment Steps
-### Railway (Backend + MySQL)
-1. Push to GitHub
-2. Railway project → Add MySQL → copy DATABASE_URL to service vars
-3. New Service → GitHub repo
-4. Env: DATABASE_URL, JWT_SECRET, NODE_ENV=production, CLIENT_URL=https://your-vercel.app
-5. Deploy
+### 1. Clone repo
+```bash
+git clone https://github.com/your-username/team-task-manager.git
+cd team-task-manager
+````
 
-### Vercel (Frontend)
-1. Import GitHub repo
-2. Root dir: `team-task-manager/client`
-3. Env: VITE_API_BASE_URL=https://your-railway.up.railway.app/api
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Setup backend
+
+```bash
+cd server
+cp .env.example .env
+```
+
+Update `.env`:
+
+```env
+DATABASE_URL=your_mysql_url
+JWT_SECRET=your_secret
+CLIENT_URL=http://localhost:5173
+```
+
+### 4. Setup frontend
+
+```bash
+cd ../client
+cp .env.example .env
+```
+
+```env
+VITE_API_BASE_URL=http://localhost:4000/api
+```
+
+### 5. Run database
+
+```bash
+cd ../server
+npx prisma migrate dev
+npm run seed
+```
+
+### 6. Start app
+
+```bash
+npm run dev
+```
+
+---
+
+## 📡 API Reference
+
+| Method | Endpoint                               | Auth | Role           | Description     |
+| ------ | -------------------------------------- | ---- | -------------- | --------------- |
+| POST   | /api/auth/signup                       | ❌    | -              | Register        |
+| POST   | /api/auth/login                        | ❌    | -              | Login           |
+| GET    | /api/auth/me                           | ✅    | -              | Current user    |
+| GET    | /api/projects                          | ✅    | Member         | User projects   |
+| POST   | /api/projects                          | ✅    | -              | Create project  |
+| GET    | /api/projects/:id                      | ✅    | Member         | Project details |
+| PUT    | /api/projects/:id                      | ✅    | Admin          | Update project  |
+| DELETE | /api/projects/:id                      | ✅    | Admin          | Delete project  |
+| POST   | /api/projects/:id/members              | ✅    | Admin          | Add member      |
+| DELETE | /api/projects/:id/members/:userId      | ✅    | Admin          | Remove member   |
+| GET    | /api/projects/:id/tasks                | ✅    | Member         | List tasks      |
+| POST   | /api/projects/:id/tasks                | ✅    | Member         | Create task     |
+| GET    | /api/projects/:id/tasks/:taskId        | ✅    | Member         | Task detail     |
+| PUT    | /api/projects/:id/tasks/:taskId        | ✅    | Creator/Admin  | Update task     |
+| DELETE | /api/projects/:id/tasks/:taskId        | ✅    | Creator/Admin  | Delete task     |
+| PATCH  | /api/projects/:id/tasks/:taskId/status | ✅    | Assignee/Admin | Update status   |
+| GET    | /api/dashboard                         | ✅    | -              | Dashboard data  |
+
+---
+
+## 🚀 Deployment
+
+### Backend (Railway)
+
+1. Push repo to GitHub
+2. Create project in Railway
+3. Add MySQL plugin
+4. Set environment variables:
+
+```env
+DATABASE_URL=...
+JWT_SECRET=...
+CLIENT_URL=https://team-task-manager-sigma-six.vercel.app
+NODE_ENV=production
+```
+
+### Frontend (Vercel)
+
+1. Import repo in Vercel
+2. Set root directory: `client`
+3. Add env:
+
+```env
+VITE_API_BASE_URL=https://team-task-manager-production-2301.up.railway.app/api
+```
+
 4. Deploy
 
-## Role Permissions
-| Action | Admin | Member |
-|--------|-------|--------|
-| View projects | Owner/member | Owner/member |
-| Create project | Yes | Yes |
-| Delete project | Yes (own) | No |
-| Add/remove members | Yes | No |
-| Create task | Yes | Yes |
-| Update any task | Yes | Creator/assignee only |
-| Delete task | Yes | Creator only |
-| Change status | Yes | Assignee only |
-| View dashboard | Yes | Yes |
+---
 
-## Database Schema
-**User** → owns **Project** → has-many **ProjectMember** (role ADMIN/MEMBER, unique user/project) ↔ **Task** (creator/assignee)
+## 🔐 Role Permissions
+
+| Action             | Admin | Member           |
+| ------------------ | ----- | ---------------- |
+| View projects      | ✅     | ✅                |
+| Create project     | ✅     | ✅                |
+| Delete project     | ✅     | ❌                |
+| Add/remove members | ✅     | ❌                |
+| Create task        | ✅     | ✅                |
+| Update any task    | ✅     | Creator/Assignee |
+| Delete task        | ✅     | Creator only     |
+| Change status      | ✅     | Assignee only    |
+| View dashboard     | ✅     | ✅                |
+
+---
+
+## 🗄 Database Schema
+
+* **User**
+* **Project**
+* **ProjectMember**
+* **Task**
+
+Relationships:
+
+```
+User → Project (owner)
+User ↔ Project (via ProjectMember)
+Project → Task
+Task → creator + assignee
+```
+
+---
+
+## ⚠️ Known Issues / Improvements
+
+* No real-time updates (WebSockets not implemented)
+* Limited filtering/search in tasks
+* No email notifications
+* No file attachments
+
+---
+
+## 🚀 Future Enhancements
+
+* Real-time updates (Socket.io)
+* Task comments & activity log
+* Notifications system
+* Advanced filters & search
+* Role-based UI controls
+
+```
+
+
+I can help 👍
+```
