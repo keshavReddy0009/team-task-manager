@@ -1,5 +1,3 @@
----
-
 
 # 🚀 Team Task Manager
 
@@ -239,8 +237,3 @@ Task → creator + assignee
 * Advanced filters & search
 * Role-based UI controls
 
-```
-
-
-I can help 👍
-```
